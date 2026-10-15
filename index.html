@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Habitify Pro - Mobile</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            onyx: '#0a0a0c',
+            'onyx-card': '#121216',
+            'onyx-border': '#1e1e26'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --theme-primary: #10b981;
+      --theme-glow: rgba(16, 185, 129, 0.25);
+      --theme-bg-soft: rgba(16, 185, 129, 0.15);
+    }
+    body {
+      background-color: #050507;
+      color: #f3f4f6;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #1e1e26; border-radius: 9999px; }
+    
+    .dynamic-accent { color: var(--theme-primary) !important; }
+    .dynamic-bg { background-color: var(--theme-primary) !important; color: #0a0a0c !important; }
+    .dynamic-bg-soft { background-color: var(--theme-bg-soft) !important; color: var(--theme-primary) !important; }
+    .dynamic-border { border-color: var(--theme-primary) !important; }
+    .glow-theme { box-shadow: 0 0 22px var(--theme-glow); }
+    .text-glow { text-shadow: 0 0 10px var(--theme-glow); }
+
+    .glass-card {
+      background: rgba(18, 18, 22, 0.92);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--theme-primary);
+      transition: border-color 0.3s ease;
+    }
+    
+    .tab-content { display: none; opacity: 0; transition: opacity 0.2s ease-in-out; }
+    .tab-content.active { display: block; opacity: 1; }
+
+    @media (min-width: 640px) {
+      .mobile-frame {
+        max-width: 420px;
+        height: 860px;
+        border-radius: 48px;
+        border: 10px solid #1a1a22;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(16, 185, 129, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+    }
+    .hidden-override { display: none !important; }
+  </style>
+</head>
+<body class="h-full flex items-center justify-center p-0 sm:p-4 bg-black overflow-hidden">
+
+  <!-- MAIN MOBILE SHELL CONTAINER -->
+  <div id="mobileShell" class="mobile-frame w-full h-full flex flex-col bg-onyx relative text-gray-100 overflow-hidden">
+    
+    <!-- AUTHENTICATION OVERLAY -->
+    <div id="authModalOverlay" class="absolute inset-0 bg-[#050507] z-50 flex flex-col items-center justify-center p-4 overflow-y-auto">
+      <div class="w-full max-w-xs flex flex-col items-center text-center space-y-4 my-auto py-4">
+        
+        <div class="w-14 h-14 rounded-2xl bg-onyx-card border-2 dynamic-border flex items-center justify-center dynamic-accent text-2xl shadow-xl glow-theme">
+          ⚡
+        </div>
+
+        <div>
+          <h1 class="text-lg font-black tracking-tight text-white flex items-center justify-center gap-1.5">
+            Habitify <span class="dynamic-accent text-glow">Pro</span>
+          </h1>
+          <p id="authSubText" class="text-[10px] text-gray-400 mt-0.5">أدخل اسمك (3 أحرف على الأقل) للبدء.</p>
+        </div>
+
+        <!-- In-App Error Notification Box -->
+        <div id="inAppAuthError" class="w-full bg-red-500/15 border border-red-500/40 text-red-300 text-[11px] py-1.5 px-3 rounded-xl hidden-override">
+          <span id="authErrorMsg">يرجى كتابة 3 أحرف على الأقل في اسم المستخدم!</span>
+        </div>
+
+        <div class="w-full bg-[#0b0e12] border border-gray-800 rounded-2xl p-3.5 space-y-2.5 text-right" id="authFormContainer">
+          
+          <div>
+            <label id="authLblName" class="block text-[10px] text-gray-400 mb-1">اسم المستخدم (3 أحرف على الأقل)</label>
+            <input type="text" id="authUserName" placeholder="أدخل اسمك هنا..." class="w-full p-2.5 rounded-xl bg-[#12171e] border border-onyx-border text-white text-xs text-center focus:border-[var(--theme-primary)] outline-none transition" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="selectAuthGender('male')" id="authBtnMale" class="p-2 rounded-xl border dynamic-border dynamic-bg-soft text-xs font-bold flex items-center justify-center gap-1 transition">
+              <span id="authMaleText">👨 ذكر</span>
+            </button>
+            <button type="button" onclick="selectAuthGender('female')" id="authBtnFemale" class="p-2 rounded-xl border border-onyx-border bg-[#12171e] text-gray-400 text-xs font-bold flex items-center justify-center gap-1 transition">
+              <span id="authFemaleText">👩 أنثى</span>
+            </button>
+          </div>
+
+          <div class="relative">
+            <select id="authLangSelect" onchange="changeAuthLanguage(this.value)" class="w-full p-2 rounded-xl bg-[#12171e] border border-onyx-border text-white text-xs font-semibold focus:border-[var(--theme-primary)] outline-none appearance-none text-center cursor-pointer">
+              <option value="ar">🇸🇦 العربية (Arabic)</option>
+              <option value="de">🇩🇪 Deutsch (German)</option>
+              <option value="en">🇬🇧 English</option>
+              <option value="fr">🇫🇷 Français (French)</option>
+            </select>
+            <i class="fa-solid fa-chevron-down absolute left-3 top-3 dynamic-accent text-[10px] pointer-events-none"></i>
+          </div>
+
+          <div class="space-y-1 pt-1">
+            <label id="authLblTheme" class="block text-[9px] text-gray-400">اختر لون الثيم المفضل:</label>
+            <div class="grid grid-cols-4 gap-1 text-[10px]">
+              <button type="button" onclick="setThemePreset('#10b981')" class="p-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500 text-emerald-400 font-bold" id="themeGreenBtn">أخضر</button>
+              <button type="button" onclick="setThemePreset('#ec4899')" class="p-1.5 rounded-lg bg-pink-500/20 border border-pink-500 text-pink-400 font-bold" id="themePinkBtn">وردي</button>
+              <button type="button" onclick="setThemePreset('#3b82f6')" class="p-1.5 rounded-lg bg-blue-500/20 border border-blue-500 text-blue-400 font-bold" id="themeBlueBtn">أزرق</button>
+              <div class="relative overflow-hidden rounded-lg border border-onyx-border bg-[#12171e] flex items-center justify-center cursor-pointer p-1">
+                <input type="color" id="authColorPicker" onchange="setThemePreset(this.value)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                <span id="themeCustomBtn" class="text-[9px] font-bold dynamic-accent">مخصص</span>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" onclick="openGoogleAuthModal()" class="w-full p-2.5 rounded-xl bg-[#12171e] border border-onyx-border text-white text-xs font-bold flex items-center justify-center gap-2 hover:border-[var(--theme-primary)] transition">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+            <span id="authGoogleText">تسجيل الدخول عبر Google</span>
+          </button>
+
+          <button type="button" onclick="openPhoneAuthModal()" class="w-full p-2.5 rounded-xl bg-[#12171e] border border-onyx-border dynamic-accent text-xs font-bold flex items-center justify-center gap-2 hover:border-[var(--theme-primary)] transition">
+            <span>📱</span>
+            <span id="authPhoneText">تسجيل برقم الجوال والرمز</span>
+          </button>
+
+          <button type="button" onclick="loginAsGhost()" class="w-full p-2.5 rounded-xl bg-[#12171e]/60 border border-onyx-border text-gray-400 text-xs font-semibold flex items-center justify-center gap-2 hover:text-white transition">
+            <span>👻</span>
+            <span id="authGhostText">دخول كشبح (أدخل اسمك)</span>
+          </button>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- GOOGLE LOGIN OTP MODAL -->
+    <div id="modalGoogleAuth" class="absolute inset-0 bg-black/90 z-[70] hidden-override flex items-center justify-center p-4">
+      <div class="w-full max-w-xs bg-onyx-card border border-onyx-border rounded-2xl p-5 space-y-4 shadow-2xl text-center">
+        <div class="w-12 h-12 rounded-full dynamic-bg-soft mx-auto flex items-center justify-center text-lg">🌐</div>
+        <h3 id="googleModalTitle" class="text-xs font-bold text-white">تسجيل الدخول عبر Google</h3>
+        <div id="googleStep1" class="space-y-3">
+          <input type="email" id="inputGoogleEmail" placeholder="example@gmail.com" class="w-full p-3 rounded-xl bg-onyx border border-onyx-border text-white text-xs text-center focus:border-[var(--theme-primary)] outline-none" />
+          <button type="button" onclick="sendGoogleCode()" id="btnSendGoogle" class="w-full py-2.5 rounded-xl dynamic-bg font-bold text-xs transition">إرسال رمز التحقق للإيميل</button>
+        </div>
+        <div id="googleStep2" class="space-y-3 hidden-override">
+          <input type="text" id="inputGoogleCode" placeholder="123456" maxlength="6" class="w-full p-3 rounded-xl bg-onyx border border-onyx-border text-white text-center font-bold tracking-widest text-sm focus:border-[var(--theme-primary)] outline-none" />
+          <button type="button" onclick="verifyGoogleCode()" id="btnVerifyGoogle" class="w-full py-2.5 rounded-xl dynamic-bg font-bold text-xs transition">تأكيد والدخول</button>
+        </div>
+        <button type="button" onclick="closeModal('modalGoogleAuth')" class="text-[11px] text-gray-400 hover:text-white pt-1">إلغاء</button>
+      </div>
+    </div>
+
+    <!-- PHONE SMS OTP MODAL -->
+    <div id="modalPhoneAuth" class="absolute inset-0 bg-black/90 z-[70] hidden-override flex items-center justify-center p-4">
+      <div class="w-full max-w-xs bg-onyx-card border border-onyx-border rounded-2xl p-5 space-y-4 shadow-2xl text-center">
+        <div class="w-12 h-12 rounded-full dynamic-bg-soft mx-auto flex items-center justify-center text-lg">📱</div>
+        <h3 id="phoneModalTitle" class="text-xs font-bold text-white">إدخال رقم الجوال</h3>
+        <div id="phoneStep1" class="space-y-3">
+          <input type="tel" id="inputPhoneNum" placeholder="+49 151 2345678" class="w-full p-3 rounded-xl bg-onyx border border-onyx-border text-white text-xs text-center focus:border-[var(--theme-primary)] outline-none" />
+          <button type="button" onclick="sendSmsCode()" id="btnSendSms" class="w-full py-2.5 rounded-xl dynamic-bg font-bold text-xs transition">إرسال الرمز</button>
+        </div>
+        <div id="phoneStep2" class="space-y-3 hidden-override">
+          <input type="text" id="inputSmsCode" placeholder="123456" maxlength="6" class="w-full p-3 rounded-xl bg-onyx border border-onyx-border text-white text-center font-bold tracking-widest text-sm focus:border-[var(--theme-primary)] outline-none" />
+          <button type="button" onclick="verifySmsCode()" id="btnVerifySms" class="w-full py-2.5 rounded-xl dynamic-bg font-bold text-xs transition">تأكيد والدخول</button>
+        </div>
+        <button type="button" onclick="closeModal('modalPhoneAuth')" class="text-[11px] text-gray-400 hover:text-white pt-1">إلغاء</button>
+      </div>
+    </div>
+
+    <!-- HEADER / USER BAR -->
+    <header class="px-5 py-2 flex items-center justify-between border-b border-onyx-border/60 z-20 shrink-0 glass-card">
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <div id="userAvatar" class="w-10 h-10 rounded-full border-2 dynamic-border p-0.5 flex items-center justify-center cursor-pointer shadow-lg glow-theme">
+            <span class="w-full h-full rounded-full bg-onyx flex items-center justify-center font-bold dynamic-accent text-sm" id="avatarInitial">
+              👨
+            </span>
+          </div>
+          <span class="absolute bottom-0 right-0 w-3 h-3 dynamic-bg rounded-full border-2 border-onyx"></span>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h2 id="userNameDisplay" class="font-bold text-sm tracking-wide text-white">user</h2>
+            <span id="genderBadge" class="text-[10px] px-1.5 py-0.5 rounded-full dynamic-bg-soft font-medium border border-emerald-500/30">♂️</span>
+          </div>
+          <p id="userStatusText" class="text-[11px] text-gray-400">Habitify Pro Active</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="switchTab('profile')" class="w-8 h-8 rounded-full bg-onyx-card border border-onyx-border flex items-center justify-center text-gray-300 hover:text-[var(--theme-primary)] active:scale-95 transition">
+          <i class="fa-solid fa-gear text-xs"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTENT VIEWPORT -->
+    <main class="flex-1 overflow-y-auto px-4 py-3 space-y-4 pb-20 relative" id="mainContentView">
+      
+      <!-- GHOST NOTICE BANNER -->
+      <div id="ghostActiveNotice" class="hidden-override p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs text-center font-semibold flex items-center justify-center gap-2">
+        <i class="fa-solid fa-ghost"></i>
+        <span id="ghostNoticeText">وضع الشبح نشط: يتم حفظ البيانات محلياً على جهازك.</span>
+      </div>
+
+      <!-- TAB 1: TODAY / HABITS -->
+      <section id="tab-habits" class="tab-content active space-y-4">
+        <div class="p-4 rounded-2xl glass-card relative overflow-hidden shadow-md">
+          <div class="absolute -left-10 -bottom-10 w-28 h-28 dynamic-bg opacity-10 rounded-full blur-2xl pointer-events-none"></div>
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <span class="text-[11px] font-semibold uppercase tracking-widest dynamic-accent" id="txtDailyGoal">Today's Focus</span>
+              <h3 class="text-base font-bold text-white mt-0.5" id="welcomeHeading">Stay Consistent!</h3>
+            </div>
+            <div class="text-right">
+              <span class="text-xs font-bold dynamic-accent" id="progressPercentage">0%</span>
+              <p class="text-[10px] text-gray-400" id="completedCountText">0 of 0 done</p>
+            </div>
+          </div>
+          
+          <div class="w-full h-2 bg-onyx-border rounded-full overflow-hidden mt-2">
+            <div id="habitsProgressBar" class="h-full dynamic-bg transition-all duration-500" style="width: 0%"></div>
+          </div>
+
+          <p id="aiMottoQuote" class="text-xs text-gray-300 italic mt-3 pt-2 border-t border-onyx-border/40 flex items-center gap-2">
+            <i class="fa-solid fa-bolt dynamic-accent text-xs"></i>
+            <span id="mottoText">"Small steps everyday lead to giant leaps."</span>
+          </p>
+        </div>
+
+        <div class="flex justify-between items-center pt-1">
+          <h4 class="text-sm font-bold text-gray-200 tracking-wide" id="txtMyHabits">My Daily Habits</h4>
+          <button type="button" onclick="openAddHabitModal()" class="px-3 py-1.5 rounded-xl dynamic-bg font-bold text-xs flex items-center gap-1.5 hover:opacity-90 active:scale-95 transition shadow-lg">
+            <i class="fa-solid fa-plus text-xs"></i>
+            <span id="btnNewHabit">New Habit</span>
+          </button>
+        </div>
+
+        <div id="habitList" class="space-y-2.5"></div>
+      </section>
+
+      <!-- TAB 2: ADVISOR -->
+      <section id="tab-ai" class="tab-content space-y-4">
+        <div class="p-4 rounded-2xl glass-card relative overflow-hidden">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl dynamic-bg-soft border dynamic-border flex items-center justify-center dynamic-accent">
+              <i class="fa-solid fa-compass text-lg"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white" id="advisorTitle">المستشار الشامل Pro</h3>
+              <p class="text-xs text-gray-400" id="txtAiSubtitle">كل ما يحتاجه الشخص في مكان واحد (دراسة، عمل، صحة)</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="aiActiveArea" class="space-y-3">
+          <div class="relative">
+            <input type="text" id="aiSearchInput" onkeyup="filterAiKnowledge()" placeholder="ابحث في دراسة، Minijob، صحة، عادات..." class="w-full py-2.5 px-4 pr-10 rounded-xl bg-onyx-card border border-onyx-border text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[var(--theme-primary)] transition" />
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-xs"></i>
+          </div>
+
+          <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs no-scrollbar">
+            <button type="button" onclick="selectCategory('all')" id="catAll" class="cat-chip px-3 py-1.5 rounded-lg dynamic-bg font-semibold shrink-0" data-cat="all">الكل</button>
+            <button type="button" onclick="selectCategory('study')" id="catStudy" class="cat-chip px-3 py-1.5 rounded-lg bg-onyx-card border border-onyx-border text-gray-300 shrink-0" data-cat="study">🎓 دراسة & Abitur</button>
+            <button type="button" onclick="selectCategory('job')" id="catJob" class="cat-chip px-3 py-1.5 rounded-lg bg-onyx-card border border-onyx-border text-gray-300 shrink-0" data-cat="job">💼 Minijob 538€</button>
+            <button type="button" onclick="selectCategory('health')" id="catHealth" class="cat-chip px-3 py-1.5 rounded-lg bg-onyx-card border border-onyx-border text-gray-300 shrink-0" data-cat="health">🍎 صحة وتغذية</button>
+            <button type="button" onclick="selectCategory('habits')" id="catHabits" class="cat-chip px-3 py-1.5 rounded-lg bg-onyx-card border border-onyx-border text-gray-300 shrink-0" data-cat="habits">⚡ بناء العادات</button>
+          </div>
+
+          <div id="aiKnowledgeContainer" class="space-y-2.5"></div>
+        </div>
+      </section>
+
+      <!-- TAB 3: STATS & WEEKLY COMMITMENT TABLE -->
+      <section id="tab-stats" class="tab-content space-y-4">
+        <div class="p-4 rounded-2xl glass-card space-y-3">
+          <h3 class="text-sm font-bold text-white" id="txtStatsTitle">نظام النقاط والمكافآت والجدول الأسبوعي</h3>
+          
+          <div class="p-3 rounded-xl bg-onyx border border-onyx-border space-y-2">
+            <div class="flex justify-between items-center text-xs">
+              <span id="lblPointsTitle" class="text-gray-400">نقاط الإنجاز الحالية:</span>
+              <span class="font-bold dynamic-accent text-sm" id="userPointsDisplay">0 pts</span>
+            </div>
+            <div class="w-full h-2 bg-onyx-border rounded-full overflow-hidden">
+              <div id="pointsProgressBar" class="h-full dynamic-bg transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <p class="text-[10px] text-gray-400 text-center" id="pointsRewardStatus">كل 100 نقطة تمنحك يوماً مجانياً إضافياً لرصيد إنجازك!</p>
+          </div>
+
+          <!-- WEEKLY COMMITMENT CHECKLIST TABLE -->
+          <div class="p-3 rounded-xl bg-onyx border border-onyx-border space-y-2">
+            <h4 class="text-xs font-bold text-white flex items-center justify-between">
+              <span id="lblWeeklyTableTitle">جدول الالتزام الأسبوعي (100 نقطة)</span>
+              <span class="text-[10px] dynamic-accent" id="weeklyScoreCount">0 / 7</span>
+            </h4>
+            <div class="grid grid-cols-7 gap-1.5 pt-1" id="weeklyGridContainer"></div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <div class="p-3 rounded-xl bg-onyx-card border border-onyx-border">
+              <p id="lblStreak" class="text-[10px] text-gray-400">التتابع الحالي</p>
+              <h4 class="text-base font-bold dynamic-accent" id="statStreak">5 🔥</h4>
+            </div>
+            <div class="p-3 rounded-xl bg-onyx-card border border-onyx-border">
+              <p id="lblCompleted" class="text-[10px] text-gray-400">المهام المكتملة</p>
+              <h4 class="text-base font-bold text-white" id="statTotalCount">1 tasks</h4>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: PROFILE & SETTINGS -->
+      <section id="tab-profile" class="tab-content space-y-4">
+        <div class="p-4 rounded-2xl glass-card space-y-4">
+          <h3 class="text-sm font-bold text-white border-b border-onyx-border pb-2" id="txtAccountSettings">Profile & Preferences</h3>
+          
+          <div class="space-y-1">
+            <label class="text-xs text-gray-400" id="lblUserName">User Name</label>
+            <input type="text" id="settingUserName" onchange="updateProfileInfo()" class="w-full p-2.5 rounded-xl bg-onyx-card border border-onyx-border text-xs text-white focus:border-[var(--theme-primary)] outline-none" />
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-xs text-gray-400" id="lblGender">Gender Mode</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="setGender('male')" id="btnGenderMale" class="p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition">
+                <span id="profileMaleText">👨 Male</span>
+              </button>
+              <button type="button" onclick="setGender('female')" id="btnGenderFemale" class="p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition">
+                <span id="profileFemaleText">👩 Female</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-xs text-gray-400" id="lblLanguage">App Language</label>
+            <select id="settingLanguage" onchange="changeLanguage(this.value)" class="w-full p-2.5 rounded-xl bg-onyx-card border border-onyx-border text-xs text-white focus:border-[var(--theme-primary)] outline-none">
+              <option value="ar">العربية (Arabic)</option>
+              <option value="de">Deutsch (German)</option>
+              <option value="en">English</option>
+              <option value="fr">Français (French)</option>
+            </select>
+          </div>
+
+          <!-- THEME COLOR SELECTOR -->
+          <div class="space-y-1.5 pt-1">
+            <label id="lblThemeColor" class="text-xs text-gray-400">لون التطبيق (الثيم الشامل)</label>
+            <div class="grid grid-cols-4 gap-2 text-xs">
+              <button type="button" onclick="setThemePreset('#10b981')" id="themeBtnGreen" class="p-2 rounded-xl bg-emerald-500/20 border border-emerald-500 text-emerald-400 font-bold transition">أخضر</button>
+              <button type="button" onclick="setThemePreset('#ec4899')" id="themeBtnPink" class="p-2 rounded-xl bg-pink-500/20 border border-pink-500 text-pink-400 font-bold transition">وردي</button>
+              <button type="button" onclick="setThemePreset('#3b82f6')" id="themeBtnBlue" class="p-2 rounded-xl bg-blue-500/20 border border-blue-500 text-blue-400 font-bold transition">أزرق</button>
+              <div class="relative overflow-hidden rounded-xl border border-onyx-border bg-onyx flex items-center justify-center cursor-pointer p-1">
+                <input type="color" id="settingColorPicker" onchange="setThemePreset(this.value)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" title="اختر لوناً مخصصاً" />
+                <span id="themeBtnCustom" class="text-[10px] font-bold dynamic-accent">مخصص</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-onyx-border space-y-2">
+            <button type="button" onclick="logoutSession()" id="btnLogout" class="w-full p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold hover:bg-amber-500/20 transition">
+              <i class="fa-solid fa-right-from-bracket mr-1"></i> تسجيل الخروج
+            </button>
+            <button type="button" onclick="openConfirmModal('resetAll')" id="btnReset" class="w-full p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold hover:bg-red-500/20 transition">
+              <i class="fa-solid fa-trash-can mr-1"></i> Reset App Data
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- BOTTOM NATIVE NAVIGATION BAR -->
+    <nav class="w-full h-16 bg-onyx-card/95 border-t border-onyx-border/80 glass-card px-3 flex items-center justify-around z-30 shrink-0 absolute bottom-0">
+      <button type="button" onclick="switchTab('habits')" id="nav-habits" class="nav-btn flex flex-col items-center justify-center dynamic-accent gap-1 w-16 h-full transition">
+        <i class="fa-solid fa-square-check text-lg"></i>
+        <span class="text-[10px] font-medium" id="navTxtHabits">Habits</span>
+      </button>
+
+      <button type="button" onclick="switchTab('ai')" id="nav-ai" class="nav-btn flex flex-col items-center justify-center text-gray-500 hover:text-gray-300 gap-1 w-16 h-full transition">
+        <i class="fa-solid fa-compass text-lg"></i>
+        <span class="text-[10px] font-medium" id="navTxtAi">Advisor</span>
+      </button>
+
+      <button type="button" onclick="switchTab('stats')" id="nav-stats" class="nav-btn flex flex-col items-center justify-center text-gray-500 hover:text-gray-300 gap-1 w-16 h-full transition">
+        <i class="fa-solid fa-chart-simple text-lg"></i>
+        <span class="text-[10px] font-medium" id="navTxtStats">Stats</span>
+      </button>
+
+      <button type="button" onclick="switchTab('profile')" id="nav-profile" class="nav-btn flex flex-col items-center justify-center text-gray-500 hover:text-gray-300 gap-1 w-16 h-full transition">
+        <i class="fa-solid fa-user text-lg"></i>
+        <span class="text-[10px] font-medium" id="navTxtProfile">Profile</span>
+      </button>
+    </nav>
+
+    <!-- MODALS -->
+    <div id="modalAddHabit" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div class="w-full max-w-sm bg-onyx-card border border-onyx-border rounded-t-3xl sm:rounded-2xl p-5 space-y-4 shadow-2xl">
+        <div class="flex justify-between items-center border-b border-onyx-border pb-3">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-circle-plus dynamic-accent"></i>
+            <span id="modalAddTitle">Add New Habit</span>
+          </h3>
+          <button type="button" onclick="closeModal('modalAddHabit')" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div>
+            <label class="block text-gray-400 mb-1" id="lblHabitTitle">Habit Name</label>
+            <input type="text" id="inputHabitTitle" placeholder="e.g., Read 15 mins" class="w-full p-3 rounded-xl bg-onyx border border-onyx-border text-white focus:border-[var(--theme-primary)] outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-gray-400 mb-1" id="lblHabitCategory">Category</label>
+            <select id="inputHabitCategory" class="w-full p-3 rounded-xl bg-onyx border border-onyx-border text-white focus:border-[var(--theme-primary)] outline-none">
+              <option value="⚡ Habit">⚡ General Habit</option>
+              <option value="🎓 Study">🎓 Study & Learning</option>
+              <option value="💼 Work">💼 Work & Minijob</option>
+              <option value="🍎 Health">🍎 Health & Fitness</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeModal('modalAddHabit')" id="btnModalCancel" class="flex-1 py-2.5 rounded-xl border border-onyx-border text-xs text-gray-300 font-semibold">Cancel</button>
+          <button type="button" onclick="saveNewHabit()" id="btnModalSave" class="flex-1 py-2.5 rounded-xl dynamic-bg font-bold text-xs transition">Save Habit</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalConfirm" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+      <div class="w-full max-w-xs bg-onyx-card border border-onyx-border rounded-2xl p-5 space-y-4 shadow-2xl text-center">
+        <div class="w-12 h-12 rounded-full bg-red-500/20 text-red-400 mx-auto flex items-center justify-center text-xl">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <h3 id="confirmTitle" class="text-sm font-bold text-white">Are you sure?</h3>
+        <p id="confirmDesc" class="text-xs text-gray-400">This action cannot be undone.</p>
+
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeModal('modalConfirm')" id="btnConfirmCancel" class="flex-1 py-2 rounded-xl border border-onyx-border text-xs text-gray-300 font-semibold">Cancel</button>
+          <button type="button" id="btnConfirmYes" class="flex-1 py-2 rounded-xl bg-red-500 text-white font-bold text-xs hover:bg-red-600 transition">Delete</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- APPLICATION JAVASCRIPT LOGIC -->
+  <script>
+    const DEFAULT_HABITS = [
+      { id: 1, title: 'Learn 10 German Words', category: '🎓 Study', completed: true },
+      { id: 2, title: 'Minijob Shift Checklist', category: '💼 Work', completed: false },
+      { id: 3, title: 'Drink 2L Water', category: '🍎 Health', completed: false },
+      { id: 4, title: 'Evening Habit Reflection', category: '⚡ Habit', completed: false }
+    ];
+
+    const DEFAULT_WEEKLY_TABLE = [
+      { day: 'Mon', active: false },
+      { day: 'Tue', active: false },
+      { day: 'Wed', active: false },
+      { day: 'Thu', active: true },
+      { day: 'Fri', active: false },
+      { day: 'Sat', active: false },
+      { day: 'Sun', active: false }
+    ];
+
+    let state = {
+      user: null,
+      habits: [],
+      weeklyTable: [],
+      activeCategory: 'all',
+      selectedGender: 'male',
+      selectedLang: 'ar',
+      themeColor: '#10b981',
+      points: 0
+    };
+
+    const aiKnowledgeBase = [
+      {
+        id: 1, cat: 'job',
+        q: { ar: "كيف أنظم الموازنة بين الدراسة والـ Minijob (538€)؟", de: "Wie balanciere ich Studium und Minijob?", en: "How to balance study and Minijob?", fr: "Comment concilier études et Minijob ?" },
+        a: { ar: "ثبت يومين أقصى حد للعمل بالأسبوع، واستغل نظام بومودورو للمذاكرة.", de: "Fixiere max. 2 Tage pro Woche für Arbeit.", en: "Fix work to 2 days max weekly.", fr: "Fixez le travail à 2 jours max." }
+      },
+      {
+        id: 2, cat: 'study',
+        q: { ar: "كيف أحفظ المصطلحات وأتخطى امتحانات Abitur؟", de: "Wie lerne ich Vokabeln für Abitur?", en: "How to memorize terms for Abitur?", fr: "Comment mémoriser pour l'Abitur ?" },
+        a: { ar: "استخدم تطبيقات التكرار المتباعد مثل Anki يومياً لمدة 15 دقيقة.", de: "Nutze Anki täglich für 15 Minuten.", en: "Use Anki daily for 15 minutes.", fr: "Utilisez Anki 15 minutes par jour." }
+      },
+      {
+        id: 3, cat: 'health',
+        q: { ar: "كيف أحافظ على طاقتي أثناء ساعات العمل الطويلة؟", de: "Wie halte ich Energie bei langen Schichten?", en: "How to keep energy during long shifts?", fr: "Comment garder l'énergie ?" },
+        a: { ar: "اشرب 2.5 لتر ماء وتجنب السكريات السريعة قبل العمل.", de: "Trinke 2.5L Wasser und vermeide Zucker.", en: "Drink 2.5L water and avoid sugar.", fr: "Buvez 2.5L d'eau et évitez le sucre." }
+      },
+      {
+        id: 4, cat: 'habits',
+        q: { ar: "كيف أبني عادة الاستيقاظ المبكر بانتظام؟", de: "Wie baue ich eine frühe Aufsteh-Habit auf?", en: "How to build early waking habit?", fr: "Comment se lever tôt ?" },
+        a: { ar: "ضع هاتفك بعيداً عن السرير بمسافة تجبرك على الوقوف.", de: "Platziere das Smartphone fern vom Bett.", en: "Place your phone away from bed.", fr: "Éloignez votre téléphone du lit." }
+      }
+    ];
+
+    const i18n = {
+      ar: {
+        authSubText: "أدخل اسمك (3 أحرف على الأقل) للبدء.",
+        authLblName: "اسم المستخدم (3 أحرف على الأقل)",
+        authMaleText: "👨 ذكر",
+        authFemaleText: "👩 أنثى",
+        authLblTheme: "اختر لون الثيم المفضل:",
+        themeGreenBtn: "أخضر",
+        themePinkBtn: "وردي",
+        themeBlueBtn: "أزرق",
+        themeCustomBtn: "مخصص",
+        authGoogleText: "تسجيل الدخول عبر Google",
+        authPhoneText: "تسجيل برقم الجوال والرمز",
+        authGhostText: "دخول كشبح (أدخل اسمك)",
+        googleModalTitle: "تسجيل الدخول عبر Google",
+        btnSendGoogle: "إرسال رمز التحقق للإيميل",
+        btnVerifyGoogle: "تأكيد والدخول",
+        phoneModalTitle: "إدخال رقم الجوال",
+        btnSendSms: "إرسال الرمز",
+        btnVerifySms: "تأكيد والدخول",
+        btnCancelPhone: "إلغاء",
+        txtDailyGoal: "تركيز اليوم",
+        welcomeHeading: "واصل الالتزام اليومي!",
+        txtMyHabits: "عاداتي اليومية",
+        btnNewHabit: "عادة جديدة",
+        advisorTitle: "المستشار الشامل Pro",
+        txtAiSubtitle: "كل ما يحتاجه الشخص في مكان واحد (دراسة، عمل، صحة)",
+        catAll: "الكل",
+        catStudy: "🎓 دراسة & Abitur",
+        catJob: "💼 Minijob 538€",
+        catHealth: "🍎 صحة وتغذية",
+        catHabits: "⚡ بناء العادات",
+        txtStatsTitle: "نظام النقاط والمكافآت والجدول الأسبوعي",
+        lblPointsTitle: "نقاط الإنجاز الحالية:",
+        pointsRewardStatus: "كل 100 نقطة تمنحك يوماً مجانياً إضافياً لرصيد إنجازك!",
+        lblWeeklyTableTitle: "جدول الالتزام الأسبوعي (100 نقطة)",
+        txtChartToday: "اليوم",
+        lblStreak: "التتابع الحالي",
+        lblCompleted: "المهام المكتملة",
+        txtAccountSettings: "الملف الشخصي والإعدادات",
+        lblUserName: "اسم المستخدم",
+        lblGender: "الجنس",
+        lblLanguage: "لغة التطبيق",
+        lblThemeColor: "لون التطبيق (الثيم الشامل)",
+        profileMaleText: "👨 ذكر",
+        profileFemaleText: "👩 أنثى",
+        btnLogout: "تسجيل الخروج",
+        btnReset: "إعادة ضبط بيانات التطبيق",
+        navTxtHabits: "العادات",
+        navTxtAi: "المستشار",
+        navTxtStats: "الإحصائيات",
+        navTxtProfile: "الحساب",
+        modalAddTitle: "إضافة عادة جديدة",
+        lblHabitTitle: "اسم العادة",
+        lblHabitCategory: "التصنيف",
+        btnModalCancel: "إلغاء",
+        btnModalSave: "حفظ العادة",
+        confirmTitle: "هل أنت متأكد؟",
+        confirmDesc: "لا يمكن التراجع عن هذا الإجراء.",
+        btnConfirmCancel: "إلغاء",
+        btnConfirmYes: "حذف",
+        motto: "الخطوات الصغيرة المنتظمة تخلق نتائج عملاقة.",
+        errMinChars: "يرجى كتابة 3 أحرف على الأقل في اسم المستخدم!",
+        ghostNotice: "وضع الشبح نشط: يتم حفظ البيانات محلياً على جهازك."
+      },
+      de: {
+        authSubText: "Gib deinen Namen (min. 3 Zeichen) ein.",
+        authLblName: "Benutzername (min. 3 Zeichen)",
+        authMaleText: "👨 Männlich",
+        authFemaleText: "👩 Weiblich",
+        authLblTheme: "Wähle deine Lieblingstheme-Farbe:",
+        themeGreenBtn: "Grün",
+        themePinkBtn: "Rosa",
+        themeBlueBtn: "Blau",
+        themeCustomBtn: "Eigen",
+        authGoogleText: "Mit Google anmelden",
+        authPhoneText: "Mit Handynummer & Code anmelden",
+        authGhostText: "Als Gast fortfahren (Name eingeben)",
+        googleModalTitle: "Google Anmeldung",
+        btnSendGoogle: "Code an E-Mail senden",
+        btnVerifyGoogle: "Bestätigen & Einloggen",
+        phoneModalTitle: "Handynummer eingeben",
+        btnSendSms: "Code senden",
+        btnVerifySms: "Bestätigen & Einloggen",
+        btnCancelPhone: "Abbrechen",
+        txtDailyGoal: "Tagesfokus",
+        welcomeHeading: "Bleib heute dran!",
+        txtMyHabits: "Meine Gewohnheiten",
+        btnNewHabit: "Neue Gewohnheit",
+        advisorTitle: "Dein Berater Pro",
+        txtAiSubtitle: "Alles an einem Ort (Studium, Arbeit, Gesundheit)",
+        catAll: "Alle",
+        catStudy: "🎓 Studium & Abitur",
+        catJob: "💼 Minijob 538€",
+        catHealth: "🍎 Gesundheit",
+        catHabits: "⚡ Gewohnheiten",
+        txtStatsTitle: "Punkte, Belohnung & Wochenplan",
+        lblPointsTitle: "Aktuelle Leistungspunkte:",
+        pointsRewardStatus: "Jede 100 Punkte geben dir einen zusätzlichen freien Tag!",
+        lblWeeklyTableTitle: "Wöchentlicher Verpflichtungsplan (100 Pts)",
+        txtChartToday: "Heute",
+        lblStreak: "Aktueller Streak",
+        lblCompleted: "Erledigte Aufgaben",
+        txtAccountSettings: "Profil & Einstellungen",
+        lblUserName: "Benutzername",
+        lblGender: "Geschlecht",
+        lblLanguage: "App-Sprache",
+        lblThemeColor: "App-Farbe (Gesamt-Theme)",
+        profileMaleText: "👨 Männlich",
+        profileFemaleText: "👩 Weiblich",
+        btnLogout: "Abmelden",
+        btnReset: "App-Daten zurücksetzen",
+        navTxtHabits: "Gewohnheiten",
+        navTxtAi: "Berater",
+        navTxtStats: "Statistik",
+        navTxtProfile: "Profil",
+        modalAddTitle: "Neue Gewohnheit hinzufügen",
+        lblHabitTitle: "Titel der Gewohnheit",
+        lblHabitCategory: "Kategorie",
+        btnModalCancel: "Abbrechen",
+        btnModalSave: "Speichern",
+        confirmTitle: "Bist du sicher?",
+        confirmDesc: "Diese Aktion kann nicht rückgängig gemacht werden.",
+        btnConfirmCancel: "Abbrechen",
+        btnConfirmYes: "Löschen",
+        motto: "Kleine tägliche Schritte führen zu großen Erfolgen.",
+        errMinChars: "Bitte gib mindestens 3 Zeichen für den Benutzernamen ein!",
+        ghostNotice: "Gast-Modus aktiv: Daten werden lokal auf deinem Gerät gespeichert."
+      },
+      en: {
+        authSubText: "Enter your name (at least 3 chars) to start.",
+        authLblName: "User Name (At least 3 characters)",
+        authMaleText: "👨 Male",
+        authFemaleText: "👩 Female",
+        authLblTheme: "Choose your favorite theme color:",
+        themeGreenBtn: "Green",
+        themePinkBtn: "Pink",
+        themeBlueBtn: "Blue",
+        themeCustomBtn: "Custom",
+        authGoogleText: "Sign in with Google",
+        authPhoneText: "Sign in with Phone & Code",
+        authGhostText: "Continue as Ghost (Enter name)",
+        googleModalTitle: "Sign in with Google",
+        btnSendGoogle: "Send Code to Email",
+        btnVerifyGoogle: "Verify & Login",
+        phoneModalTitle: "Enter Phone Number",
+        btnSendSms: "Send Code",
+        btnVerifySms: "Verify & Login",
+        btnCancelPhone: "Cancel",
+        txtDailyGoal: "Today's Focus",
+        welcomeHeading: "Stay Consistent Today!",
+        txtMyHabits: "My Daily Habits",
+        btnNewHabit: "New Habit",
+        advisorTitle: "Comprehensive Advisor Pro",
+        txtAiSubtitle: "Everything in one place (Study, Work, Health)",
+        catAll: "All",
+        catStudy: "🎓 Study & Abitur",
+        catJob: "💼 Minijob 538€",
+        catHealth: "🍎 Health & Diet",
+        catHabits: "⚡ Habit Building",
+        txtStatsTitle: "Points, Rewards & Weekly Table",
+        lblPointsTitle: "Current Achievement Points:",
+        pointsRewardStatus: "Every 100 points grant you an extra free reward day!",
+        lblWeeklyTableTitle: "Weekly Commitment Table (100 Pts)",
+        txtChartToday: "Today",
+        lblStreak: "Current Streak",
+        lblCompleted: "Completed Tasks",
+        txtAccountSettings: "Profile & Settings",
+        lblUserName: "User Name",
+        lblGender: "Gender",
+        lblLanguage: "App Language",
+        lblThemeColor: "App Theme Color",
+        profileMaleText: "👨 Male",
+        profileFemaleText: "👩 Female",
+        btnLogout: "Log Out",
+        btnReset: "Reset App Data",
+        navTxtHabits: "Habits",
+        navTxtAi: "Advisor",
+        navTxtStats: "Stats",
+        navTxtProfile: "Profile",
+        modalAddTitle: "Add New Habit",
+        lblHabitTitle: "Habit Title",
+        lblHabitCategory: "Category",
+        btnModalCancel: "Cancel",
+        btnModalSave: "Save Habit",
+        confirmTitle: "Are you sure?",
+        confirmDesc: "This action cannot be undone.",
+        btnConfirmCancel: "Cancel",
+        btnConfirmYes: "Delete",
+        motto: "Small steps everyday lead to giant leaps.",
+        errMinChars: "Please enter at least 3 characters for the username!",
+        ghostNotice: "Ghost Mode active: Data is saved locally on your device."
+      },
+      fr: {
+        authSubText: "Entrez votre nom (min. 3 caractères).",
+        authLblName: "Nom d'utilisateur (3 caractères min)",
+        authMaleText: "👨 Homme",
+        authFemaleText: "👩 Femme",
+        authLblTheme: "Choisissez votre couleur de thème préférée :",
+        themeGreenBtn: "Vert",
+        themePinkBtn: "Rose",
+        themeBlueBtn: "Bleu",
+        themeCustomBtn: "Perso",
+        authGoogleText: "Se connecter avec Google",
+        authPhoneText: "Se connecter avec Téléphone & Code",
+        authGhostText: "Continuer en invité (Entrez un nom)",
+        googleModalTitle: "Connexion Google",
+        btnSendGoogle: "Envoyer le code par e-mail",
+        btnVerifyGoogle: "Vérifier & Se connecter",
+        phoneModalTitle: "Entrez le numéro de téléphone",
+        btnSendSms: "Envoyer le code",
+        btnVerifySms: "Vérifier & Se connecter",
+        btnCancelPhone: "Annuler",
+        txtDailyGoal: "Objectif du jour",
+        welcomeHeading: "Restez régulier aujourd'hui !",
+        txtMyHabits: "Mes Habitudes",
+        btnNewHabit: "Nouvelle Habitude",
+        advisorTitle: "Conseiller Pro",
+        txtAiSubtitle: "Tout en un (Études, Travail, Santé)",
+        catAll: "Tous",
+        catStudy: "🎓 Études",
+        catJob: "💼 Minijob",
+        catHealth: "🍎 Santé",
+        catHabits: "⚡ Habitudes",
+        txtStatsTitle: "Points, Récompenses & Tableau",
+        lblPointsTitle: "Points d'accomplissement actuels :",
+        pointsRewardStatus: "Tous les 100 points vous donnent un jour gratuit supplémentaire !",
+        lblWeeklyTableTitle: "Tableau de présence hebdomadaire (100 Pts)",
+        txtChartToday: "Aujourd'hui",
+        lblStreak: "Série actuelle",
+        lblCompleted: "Tâches complétées",
+        txtAccountSettings: "Profil & Paramètres",
+        lblUserName: "Nom d'utilisateur",
+        lblGenre: "Genre",
+        lblLanguage: "Langue de l'application",
+        lblThemeColor: "Couleur de l'application",
+        profileMaleText: "👨 Homme",
+        profileFemaleText: "👩 Femme",
+        btnLogout: "Se déconnecter",
+        btnReset: "Réinitialiser les données",
+        navTxtHabits: "Habitudes",
+        navTxtAi: "Conseiller",
+        navTxtStats: "Stats",
+        navTxtProfile: "Profil",
+        modalAddTitle: "Ajouter une habitude",
+        lblHabitTitle: "Titre de l'habitude",
+        lblHabitCategory: "Catégorie",
+        btnModalCancel: "Annuler",
+        btnModalSave: "Enregistrer",
+        confirmTitle: "Êtes-vous sûr ?",
+        confirmDesc: "Cette action est irréversible.",
+        btnConfirmCancel: "Annuler",
+        btnConfirmYes: "Supprimer",
+        motto: "Chaque petit pas quotidien mène à de grands succès.",
+        errMinChars: "Veuillez entrer au moins 3 caractères pour le nom d'utilisateur !",
+        ghostNotice: "Mode Invité actif : les données sont enregistrées localement."
+      }
+    };
+
+    window.onload = function() {
+      loadSavedTheme();
+      checkUserSession();
+      renderAiKnowledge();
+    };
+
+    function hexToRgba(hex, alpha) {
+      let c = hex.replace('#', '');
+      if (c.length === 3) c = c.split('').map(x => x + x).join('');
+      const num = parseInt(c, 16);
+      return `rgba(${num >> 16}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
+    }
+
+    function setThemePreset(color) {
+      state.themeColor = color;
+      document.documentElement.style.setProperty('--theme-primary', color);
+      document.documentElement.style.setProperty('--theme-glow', hexToRgba(color, 0.25));
+      document.documentElement.style.setProperty('--theme-bg-soft', hexToRgba(color, 0.15));
+      
+      const userKey = state.user ? `habitify_theme_${state.user.name}` : 'habitify_theme_global';
+      localStorage.setItem(userKey, color);
+
+      if(document.getElementById('settingColorPicker')) {
+        document.getElementById('settingColorPicker').value = color;
+      }
+      if(document.getElementById('authColorPicker')) {
+        document.getElementById('authColorPicker').value = color;
+      }
+    }
+
+    function loadSavedTheme() {
+      const userKey = state.user ? `habitify_theme_${state.user.name}` : 'habitify_theme_global';
+      const savedTheme = localStorage.getItem(userKey) || localStorage.getItem('habitify_theme_global') || '#10b981';
+      setThemePreset(savedTheme);
+    }
+
+    function checkUserSession() {
+      const savedUser = localStorage.getItem('habitify_current_user');
+      if (savedUser) {
+        state.user = JSON.parse(savedUser);
+        if (state.user.isGhost && (Date.now() - state.user.createdAt > 24 * 60 * 60 * 1000)) {
+          localStorage.removeItem('habitify_current_user');
+          document.getElementById('authModalOverlay').classList.remove('hidden-override');
+          return;
+        }
+        document.getElementById('authModalOverlay').classList.add('hidden-override');
+        loadUserDataStorage();
+        applyUserDataToUI();
+        loadSavedTheme();
+        
+        if (state.user.isGhost) {
+          document.getElementById('ghostActiveNotice').classList.remove('hidden-override');
+        } else {
+          document.getElementById('ghostActiveNotice').classList.add('hidden-override');
+        }
+      } else {
+        document.getElementById('authModalOverlay').classList.remove('hidden-override');
+      }
+      renderHabits();
+    }
+
+    function loadUserDataStorage() {
+      if(!state.user) return;
+      const prefix = `habitify_${state.user.name}_`;
+      const savedHabits = localStorage.getItem(prefix + 'habits');
+      const savedPoints = localStorage.getItem(prefix + 'points');
+      const savedWeekly = localStorage.getItem(prefix + 'weekly');
+
+      if (savedHabits) {
+        state.habits = JSON.parse(savedHabits);
+      } else {
+        state.habits = DEFAULT_HABITS;
+        saveUserHabits();
+      }
+
+      if (savedWeekly) {
+        state.weeklyTable = JSON.parse(savedWeekly);
+      } else {
+        state.weeklyTable = DEFAULT_WEEKLY_TABLE;
+        saveUserWeekly();
+      }
+
+      state.points = savedPoints ? parseInt(savedPoints) : 0;
+    }
+
+    function saveUserHabits() {
+      if(!state.user) return;
+      localStorage.setItem(`habitify_${state.user.name}_habits`, JSON.stringify(state.habits));
+    }
+
+    function saveUserWeekly() {
+      if(!state.user) return;
+      localStorage.setItem(`habitify_${state.user.name}_weekly`, JSON.stringify(state.weeklyTable));
+    }
+
+    function saveUserPoints() {
+      if(!state.user) return;
+      localStorage.setItem(`habitify_${state.user.name}_points`, state.points);
+    }
+
+    function showInAppError(msg) {
+      const errBox = document.getElementById('inAppAuthError');
+      const errTxt = document.getElementById('authErrorMsg');
+      errTxt.innerText = msg;
+      errBox.classList.remove('hidden-override');
+      setTimeout(() => {
+        errBox.classList.add('hidden-override');
+      }, 4000);
+    }
+
+    function selectAuthGender(gender) {
+      state.selectedGender = gender;
+      const maleBtn = document.getElementById('authBtnMale');
+      const femaleBtn = document.getElementById('authBtnFemale');
+
+      if (gender === 'male') {
+        maleBtn.className = 'p-2 rounded-xl border dynamic-border dynamic-bg-soft text-xs font-bold flex items-center justify-center gap-1 transition';
+        femaleBtn.className = 'p-2 rounded-xl border border-onyx-border bg-[#12171e] text-gray-400 text-xs font-bold flex items-center justify-center gap-1 transition';
+      } else {
+        femaleBtn.className = 'p-2 rounded-xl border dynamic-border dynamic-bg-soft text-xs font-bold flex items-center justify-center gap-1 transition';
+        maleBtn.className = 'p-2 rounded-xl border border-onyx-border bg-[#12171e] text-gray-400 text-xs font-bold flex items-center justify-center gap-1 transition';
+      }
+    }
+
+    function changeAuthLanguage(lang) {
+      state.selectedLang = lang;
+      changeLanguage(lang);
+    }
+
+    function openGoogleAuthModal() {
+      const inputName = document.getElementById('authUserName').value.trim();
+      const lang = state.selectedLang || 'ar';
+      if (!inputName || inputName.length < 3) {
+        showInAppError(i18n[lang].errMinChars);
+        return;
+      }
+      document.getElementById('googleStep1').classList.remove('hidden-override');
+      document.getElementById('googleStep2').classList.add('hidden-override');
+      document.getElementById('modalGoogleAuth').classList.remove('hidden-override');
+    }
+
+    function sendGoogleCode() {
+      document.getElementById('googleStep1').classList.add('hidden-override');
+      document.getElementById('googleStep2').classList.remove('hidden-override');
+    }
+
+    function verifyGoogleCode() {
+      const inputName = document.getElementById('authUserName').value.trim() || 'user';
+      state.user = { name: inputName, gender: state.selectedGender, lang: state.selectedLang, isGhost: false, createdAt: Date.now() };
+      closeModal('modalGoogleAuth');
+      finalizeLogin();
+    }
+
+    function openPhoneAuthModal() {
+      const inputName = document.getElementById('authUserName').value.trim();
+      const lang = state.selectedLang || 'ar';
+      if (!inputName || inputName.length < 3) {
+        showInAppError(i18n[lang].errMinChars);
+        return;
+      }
+      document.getElementById('phoneStep1').classList.remove('hidden-override');
+      document.getElementById('phoneStep2').classList.add('hidden-override');
+      document.getElementById('modalPhoneAuth').classList.remove('hidden-override');
+    }
+
+    function sendSmsCode() {
+      document.getElementById('phoneStep1').classList.add('hidden-override');
+      document.getElementById('phoneStep2').classList.remove('hidden-override');
+    }
+
+    function verifySmsCode() {
+      const inputName = document.getElementById('authUserName').value.trim() || 'user';
+      state.user = { name: inputName, gender: state.selectedGender, lang: state.selectedLang, isGhost: false, createdAt: Date.now() };
+      closeModal('modalPhoneAuth');
+      finalizeLogin();
+    }
+
+    function loginAsGhost() {
+      const inputName = document.getElementById('authUserName').value.trim();
+      const lang = state.selectedLang || 'ar';
+      if (!inputName || inputName.length < 3) {
+        showInAppError(i18n[lang].errMinChars);
+        return;
+      }
+      state.user = { name: inputName, gender: state.selectedGender, lang: state.selectedLang, isGhost: true, createdAt: Date.now() };
+      finalizeLogin();
+    }
+
+    function finalizeLogin() {
+      localStorage.setItem('habitify_current_user', JSON.stringify(state.user));
+      document.getElementById('authModalOverlay').classList.add('hidden-override');
+      loadUserDataStorage();
+      applyUserDataToUI();
+      loadSavedTheme();
+      renderHabits();
+
+      if (state.user.isGhost) {
+        document.getElementById('ghostActiveNotice').classList.remove('hidden-override');
+      } else {
+        document.getElementById('ghostActiveNotice').classList.add('hidden-override');
+      }
+    }
+
+    function logoutSession() {
+      localStorage.removeItem('habitify_current_user');
+      location.reload();
+    }
+
+    function applyUserDataToUI() {
+      if (!state.user) return;
+      document.getElementById('userNameDisplay').innerText = state.user.name;
+      document.getElementById('settingUserName').value = state.user.name;
+      document.getElementById('settingLanguage').value = state.user.lang || 'ar';
+      setGender(state.user.gender || 'male', false);
+      changeLanguage(state.user.lang || 'ar', false);
+    }
+
+    function changeLanguage(lang, save = true) {
+      if (!state.user) state.user = {};
+      state.user.lang = lang;
+      if (save && localStorage.getItem('habitify_current_user')) {
+        localStorage.setItem('habitify_current_user', JSON.stringify(state.user));
+      }
+
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+      const t = i18n[lang];
+      document.getElementById('authSubText').innerText = t.authSubText;
+      document.getElementById('authLblName').innerText = t.authLblName;
+      document.getElementById('authMaleText').innerText = t.authMaleText;
+      document.getElementById('authFemaleText').innerText = t.authFemaleText;
+      document.getElementById('authLblTheme').innerText = t.authLblTheme;
+      document.getElementById('themeGreenBtn').innerText = t.themeGreenBtn;
+      document.getElementById('themePinkBtn').innerText = t.themePinkBtn;
+      document.getElementById('themeBlueBtn').innerText = t.themeBlueBtn;
+      document.getElementById('themeBtnCustom').innerText = t.themeCustomBtn;
+      
+      // Update Profile page theme buttons as well
+      document.getElementById('themeBtnGreen').innerText = t.themeGreenBtn;
+      document.getElementById('themeBtnPink').innerText = t.themePinkBtn;
+      document.getElementById('themeBtnBlue').innerText = t.themeBlueBtn;
+      document.getElementById('themeBtnCustom').innerText = t.themeCustomBtn;
+
+      document.getElementById('authGoogleText').innerText = t.authGoogleText;
+      document.getElementById('authPhoneText').innerText = t.authPhoneText;
+      document.getElementById('authGhostText').innerText = t.authGhostText;
+      document.getElementById('googleModalTitle').innerText = t.googleModalTitle;
+      document.getElementById('btnSendGoogle').innerText = t.btnSendGoogle;
+      document.getElementById('btnVerifyGoogle').innerText = t.btnVerifyGoogle;
+      document.getElementById('phoneModalTitle').innerText = t.phoneModalTitle;
+      document.getElementById('btnSendSms').innerText = t.btnSendSms;
+      document.getElementById('btnVerifySms').innerText = t.btnVerifySms;
+      document.getElementById('txtDailyGoal').innerText = t.txtDailyGoal;
+      document.getElementById('welcomeHeading').innerText = t.welcomeHeading;
+      document.getElementById('txtMyHabits').innerText = t.txtMyHabits;
+      document.getElementById('btnNewHabit').innerText = t.btnNewHabit;
+      document.getElementById('advisorTitle').innerText = t.advisorTitle;
+      document.getElementById('txtAiSubtitle').innerText = t.txtAiSubtitle;
+      document.getElementById('catAll').innerText = t.catAll;
+      document.getElementById('catStudy').innerText = t.catStudy;
+      document.getElementById('catJob').innerText = t.catJob;
+      document.getElementById('catHealth').innerText = t.catHealth;
+      document.getElementById('catHabits').innerText = t.catHabits;
+      document.getElementById('txtStatsTitle').innerText = t.txtStatsTitle;
+      document.getElementById('lblPointsTitle').innerText = t.lblPointsTitle;
+      document.getElementById('pointsRewardStatus').innerText = t.pointsRewardStatus;
+      document.getElementById('lblWeeklyTableTitle').innerText = t.lblWeeklyTableTitle;
+      document.getElementById('lblStreak').innerText = t.lblStreak;
+      document.getElementById('lblCompleted').innerText = t.lblCompleted;
+      document.getElementById('txtAccountSettings').innerText = t.txtAccountSettings;
+      document.getElementById('lblUserName').innerText = t.lblUserName;
+      document.getElementById('lblGender').innerText = t.lblGender;
+      document.getElementById('lblLanguage').innerText = t.lblLanguage;
+      document.getElementById('lblThemeColor').innerText = t.lblThemeColor;
+      document.getElementById('profileMaleText').innerText = t.profileMaleText;
+      document.getElementById('profileFemaleText').innerText = t.profileFemaleText;
+      document.getElementById('btnLogout').innerHTML = `<i class="fa-solid fa-right-from-bracket mr-1"></i> ${t.btnLogout}`;
+      document.getElementById('btnReset').innerHTML = `<i class="fa-solid fa-trash-can mr-1"></i> ${t.btnReset}`;
+      document.getElementById('navTxtHabits').innerText = t.navTxtHabits;
+      document.getElementById('navTxtAi').innerText = t.navTxtAi;
+      document.getElementById('navTxtStats').innerText = t.navTxtStats;
+      document.getElementById('navTxtProfile').innerText = t.navTxtProfile;
+      document.getElementById('modalAddTitle').innerText = t.modalAddTitle;
+      document.getElementById('lblHabitTitle').innerText = t.lblHabitTitle;
+      document.getElementById('lblHabitCategory').innerText = t.lblHabitCategory;
+      document.getElementById('btnModalCancel').innerText = t.btnModalCancel;
+      document.getElementById('btnModalSave').innerText = t.btnModalSave;
+      document.getElementById('confirmTitle').innerText = t.confirmTitle;
+      document.getElementById('confirmDesc').innerText = t.confirmDesc;
+      document.getElementById('btnConfirmCancel').innerText = t.btnConfirmCancel;
+      document.getElementById('btnConfirmYes').innerText = t.btnConfirmYes;
+      document.getElementById('mottoText').innerText = `"${t.motto}"`;
+      document.getElementById('ghostNoticeText').innerText = t.ghostNotice;
+      
+      renderAiKnowledge();
+      renderWeeklyTable();
+    }
+
+    function setGender(gender, save = true) {
+      if (!state.user) state.user = {};
+      state.user.gender = gender;
+      if (save && localStorage.getItem('habitify_current_user')) {
+        localStorage.setItem('habitify_current_user', JSON.stringify(state.user));
+      }
+
+      const isMale = gender === 'male';
+      document.getElementById('avatarInitial').innerText = isMale ? '👨' : '👩';
+      document.getElementById('genderBadge').innerText = isMale ? '👨' : '👩';
+
+      const maleBtn = document.getElementById('btnGenderMale');
+      const femaleBtn = document.getElementById('btnGenderFemale');
+
+      if (isMale) {
+        maleBtn.className = 'p-2.5 rounded-xl border dynamic-border dynamic-bg-soft text-xs font-semibold flex items-center justify-center gap-2 transition';
+        femaleBtn.className = 'p-2.5 rounded-xl border border-onyx-border text-gray-400 text-xs font-semibold flex items-center justify-center gap-2 transition';
+      } else {
+        femaleBtn.className = 'p-2.5 rounded-xl border dynamic-border dynamic-bg-soft text-xs font-semibold flex items-center justify-center gap-2 transition';
+        maleBtn.className = 'p-2.5 rounded-xl border border-onyx-border text-gray-400 text-xs font-semibold flex items-center justify-center gap-2 transition';
+      }
+    }
+
+    function updateProfileInfo() {
+      const name = document.getElementById('settingUserName').value.trim();
+      const lang = state.user?.lang || 'ar';
+      if (!name || name.length < 3) {
+        showInAppError(i18n[lang].errMinChars);
+        return;
+      }
+      if (state.user) {
+        state.user.name = name;
+        localStorage.setItem('habitify_current_user', JSON.stringify(state.user));
+        document.getElementById('userNameDisplay').innerText = name;
+      }
+    }
+
+    function selectCategory(cat) {
+      state.activeCategory = cat;
+      document.querySelectorAll('.cat-chip').forEach(btn => {
+        if (btn.getAttribute('data-cat') === cat) {
+          btn.className = 'cat-chip px-3 py-1.5 rounded-lg dynamic-bg font-semibold shrink-0';
+        } else {
+          btn.className = 'cat-chip px-3 py-1.5 rounded-lg bg-onyx-card border border-onyx-border text-gray-300 shrink-0';
+        }
+      });
+      renderAiKnowledge();
+    }
+
+    function renderAiKnowledge() {
+      const container = document.getElementById('aiKnowledgeContainer');
+      container.innerHTML = '';
+      const lang = state.user?.lang || state.selectedLang || 'ar';
+      const searchTerm = document.getElementById('aiSearchInput')?.value.toLowerCase() || '';
+
+      const filtered = aiKnowledgeBase.filter(item => {
+        const matchesCat = state.activeCategory === 'all' || item.cat === state.activeCategory;
+        const qText = (item.q[lang] || item.q['ar']).toLowerCase();
+        return matchesCat && qText.includes(searchTerm);
+      });
+
+      filtered.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'p-3 rounded-xl glass-card space-y-1.5';
+        const qLang = item.q[lang] || item.q['ar'];
+        const aLang = item.a[lang] || item.a['ar'];
+        div.innerHTML = `
+          <div class="flex justify-between items-center"><span class="text-[9px] px-1.5 py-0.2 rounded dynamic-bg-soft font-bold">${item.cat.toUpperCase()}</span></div>
+          <h4 class="text-xs font-bold text-white">${qLang}</h4>
+          <p class="text-[11px] text-gray-300 bg-onyx p-2 rounded-lg border border-onyx-border/50 leading-relaxed">${aLang}</p>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function filterAiKnowledge() { renderAiKnowledge(); }
+
+    function renderHabits() {
+      const container = document.getElementById('habitList');
+      container.innerHTML = '';
+
+      state.habits.forEach(h => {
+        const item = document.createElement('div');
+        item.className = 'p-3 rounded-2xl glass-card flex items-center justify-between transition';
+        item.innerHTML = `
+          <div class="flex items-center gap-3">
+            <button type="button" onclick="toggleHabit(${h.id})" class="w-6 h-6 rounded-lg border ${h.completed ? 'dynamic-bg dynamic-border' : 'border-onyx-border bg-onyx'} flex items-center justify-center text-xs transition">
+              ${h.completed ? '<i class="fa-solid fa-check font-bold"></i>' : ''}
+            </button>
+            <div>
+              <h5 class="text-xs font-bold ${h.completed ? 'line-through text-gray-500' : 'text-white'}">${h.title}</h5>
+              <span class="text-[10px] dynamic-accent opacity-90">${h.category || '⚡ Habit'}</span>
+            </div>
+          </div>
+          <button type="button" onclick="confirmDeleteHabit(${h.id})" class="w-8 h-8 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 transition">
+            <i class="fa-solid fa-trash-can text-xs"></i>
+          </button>
+        `;
+        container.appendChild(item);
+      });
+
+      updateDashboardStats();
+      renderWeeklyTable();
+    }
+
+    function toggleHabit(id) {
+      state.habits = state.habits.map(h => {
+        if (h.id === id) {
+          const newStatus = !h.completed;
+          if (newStatus) {
+            state.points += 10;
+          } else {
+            state.points = Math.max(0, state.points - 10);
+          }
+          return { ...h, completed: newStatus };
+        }
+        return h;
+      });
+      saveUserHabits();
+      saveUserPoints();
+      renderHabits();
+    }
+
+    function toggleWeeklyDay(index) {
+      if (!state.weeklyTable[index]) return;
+      const current = state.weeklyTable[index].active;
+      state.weeklyTable[index].active = !current;
+      
+      const activeCount = state.weeklyTable.filter(d => d.active).length;
+      if (activeCount === 7 && !current) {
+        state.points += 100;
+      }
+
+      saveUserWeekly();
+      saveUserPoints();
+      renderWeeklyTable();
+      updateDashboardStats();
+    }
+
+    function renderWeeklyTable() {
+      const container = document.getElementById('weeklyGridContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (!state.weeklyTable || state.weeklyTable.length === 0) {
+        state.weeklyTable = DEFAULT_WEEKLY_TABLE;
+      }
+
+      let activeCount = 0;
+      state.weeklyTable.forEach((item, idx) => {
+        if (item.active) activeCount++;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.onclick = () => toggleWeeklyDay(idx);
+        btn.className = `p-2 rounded-xl border text-center transition flex flex-col items-center justify-center gap-1 ${item.active ? 'dynamic-bg dynamic-border font-bold shadow-md' : 'bg-onyx border-onyx-border text-gray-400'}`;
+        btn.innerHTML = `
+          <span class="text-[10px]">${item.day}</span>
+          <i class="fa-solid ${item.active ? 'fa-check' : 'fa-minus'} text-xs"></i>
+        `;
+        container.appendChild(btn);
+      });
+
+      const scoreEl = document.getElementById('weeklyScoreCount');
+      if (scoreEl) scoreEl.innerText = `${activeCount} / 7`;
+    }
+
+    function confirmDeleteHabit(id) {
+      state.pendingDeleteId = id;
+      document.getElementById('btnConfirmYes').onclick = function() {
+        state.habits = state.habits.filter(h => h.id !== state.pendingDeleteId);
+        saveUserHabits();
+        renderHabits();
+        closeModal('modalConfirm');
+      };
+      document.getElementById('modalConfirm').classList.remove('hidden');
+    }
+
+    function updateDashboardStats() {
+      const total = state.habits.length;
+      const completed = state.habits.filter(h => h.completed).length;
+      const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+      const lang = state.user?.lang || state.selectedLang || 'ar';
+      const doneLabel = lang === 'ar' ? 'مكتملة' : (lang === 'de' ? 'erledigt' : (lang === 'fr' ? 'terminées' : 'done'));
+
+      document.getElementById('progressPercentage').innerText = `${pct}%`;
+      document.getElementById('completedCountText').innerText = `${completed} / ${total} ${doneLabel}`;
+      document.getElementById('habitsProgressBar').style.width = `${pct}%`;
+      document.getElementById('statTotalCount').innerText = `${completed} ${lang === 'ar' ? 'مهمة' : 'tasks'}`;
+
+      const currentPoints = state.points || 0;
+      document.getElementById('userPointsDisplay').innerText = `${currentPoints} pts`;
+      const pointsInCurrentCycle = currentPoints % 100;
+      const pointsPct = (pointsInCurrentCycle / 100) * 100;
+      document.getElementById('pointsProgressBar').style.width = `${pointsPct}%`;
+    }
+
+    function openAddHabitModal() {
+      document.getElementById('inputHabitTitle').value = '';
+      document.getElementById('modalAddHabit').classList.remove('hidden');
+    }
+
+    function saveNewHabit() {
+      const title = document.getElementById('inputHabitTitle').value.trim();
+      const category = document.getElementById('inputHabitCategory').value;
+      if (!title) return;
+
+      state.habits.push({ id: Date.now(), title: title, category: category, completed: false });
+      saveUserHabits();
+      renderHabits();
+      closeModal('modalAddHabit');
+    }
+
+    function openConfirmModal(actionTask) {
+      if (actionTask === 'resetAll') {
+        document.getElementById('btnConfirmYes').onclick = function() {
+          if(state.user) {
+            localStorage.removeItem(`habitify_${state.user.name}_habits`);
+            localStorage.removeItem(`habitify_${state.user.name}_points`);
+            localStorage.removeItem(`habitify_${state.user.name}_weekly`);
+          }
+          location.reload();
+        };
+        document.getElementById('modalConfirm').classList.remove('hidden');
+      }
+    }
+
+    function closeModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+
+      const navButtons = { habits: 'nav-habits', ai: 'nav-ai', stats: 'nav-stats', profile: 'nav-profile' };
+      Object.keys(navButtons).forEach(key => {
+        const btn = document.getElementById(navButtons[key]);
+        if (key === tabName) {
+          btn.className = 'nav-btn flex flex-col items-center justify-center dynamic-accent gap-1 w-16 h-full transition';
+        } else {
+          btn.className = 'nav-btn flex flex-col items-center justify-center text-gray-500 hover:text-gray-300 gap-1 w-16 h-full transition';
+        }
+      });
+    }
+  </script>
+</body>
+</html>
